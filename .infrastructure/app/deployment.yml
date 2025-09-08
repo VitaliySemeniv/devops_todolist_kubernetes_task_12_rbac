@@ -1,8 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-app
+  namespace: todo
+labels:
+  app: todoapp
 spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todoapp
   template:
+    metadata:
+      labels:
+        app: todoapp
     spec:
+      # ✅ serviceAccountName має бути ТУТ (а не на верхньому рівні Deployment)
       serviceAccountName: todolist-sa
       containers:
-        - name: todolist
-          image: your-image
-serviceAccountName: todolist-sa
+        - name: todo
+          image: yourorg/todo:latest # ← підстав свій реальний образ
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet: { path: /health, port: 8080 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: 8080 }
+            initialDelaySeconds: 30
+            periodSeconds: 10
